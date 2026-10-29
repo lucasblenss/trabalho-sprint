@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assistência | Clientes e equipamentos</title>
+<style>
+/* Cores do orçamento: amarelo = aguardando, verde = aceito, vermelho = rejeitado */
+.orc{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.status-PENDENTE{background:#ffc107;color:#17263d}
+.status-ACEITO{background:#28a745;color:#fff}
+.status-REJEITADO{background:#dc3545;color:#fff}
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#17263d;background:#f3f6fb;font-synthesis:none}*{box-sizing:border-box}body{margin:0}header{background:#152a46;color:white;padding:26px max(5vw,20px)}header .top{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}h1{font-size:25px;margin:0 0 6px}header p{color:#c6d5e8;margin:0;font-size:14px}.badge{font-size:12px;border:1px solid #526b8a;border-radius:20px;padding:7px 12px}main{max-width:1200px;margin:auto;padding:26px 20px}button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:8px;padding:10px 15px;background:#2463dc;color:white;font-weight:600}button:hover{filter:brightness(.94)}button:disabled{opacity:.55;cursor:wait}button.secondary{background:#e9eff9;color:#23446d}button.danger{background:#fff0ef;color:#b33131}button.small{padding:7px 10px;font-size:13px}nav{display:flex;gap:8px;margin:24px 0}nav button{background:white;color:#49617c;border:1px solid #d8e1ef}nav button[aria-selected=true]{background:#2463dc;color:white;border-color:#2463dc}.stats{display:grid;grid-template-columns:1fr 1fr;gap:16px}.stat{background:white;border:1px solid #e1e7f0;border-radius:12px;padding:18px}.stat strong{display:block;font-size:30px;margin-top:5px}.muted{color:#60718a;font-size:14px}.grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}.card{background:white;border:1px solid #e1e7f0;border-radius:12px;padding:22px;min-width:0}h2{font-size:19px;margin:0 0 18px}label{display:block;font-size:14px;font-weight:600;margin:15px 0 6px}input,select{width:100%;border:1px solid #bccbdd;border-radius:7px;padding:11px;background:white;color:#17263d}input:focus,select:focus{outline:3px solid #d7e6ff;border-color:#2463dc}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}.toolbar input{flex:1;min-width:150px}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#60718a;background:#f6f8fc}th,td{padding:12px 10px;border-bottom:1px solid #e7edf5;vertical-align:top}td{overflow-wrap:anywhere}td .row-actions{display:flex;gap:6px;flex-wrap:wrap;min-width:140px}.empty{text-align:center;color:#60718a;padding:28px}#notice{padding:14px 18px;border-radius:9px;margin-bottom:18px;white-space:pre-wrap;background:#e9f1ff;color:#204b87}#notice.error{background:#ffeded;color:#922929}#notice.success{background:#e8f6ee;color:#1f6640}[hidden]{display:none!important}.hint{font-size:12px;color:#60718a;line-height:1.6;margin-top:12px}footer{font-size:12px;color:#60718a;margin-top:24px;line-height:1.7}.status{display:flex;align-items:center;gap:8px;margin:0 0 18px;font-size:13px;color:#60718a}.dot{width:9px;height:9px;background:#8593a8;border-radius:50%}.dot.ok{background:#23845b}.dot.fail{background:#bd3939}@media(max-width:850px){.grid{grid-template-columns:1fr}.stats{gap:10px}.card{padding:17px}header{padding:22px 20px}}
+</style>
+</head>
+<body>
+<header><div class="top"><div><h1>Assistência técnica</h1><p>Gestão de clientes e equipamentos</p></div><span class="badge">Sprint 1 · Cadastros</span></div></header>
+<main>
+<div id="notice" role="status" aria-live="polite" hidden></div>
+<div class="status"><span id="dot" class="dot"></span><span id="connection">Conectando à API…</span><button class="secondary small" id="refresh">Atualizar dados</button></div>
+<div class="stats"><div class="stat"><span class="muted">Clientes cadastrados</span><strong id="count-clients">—</strong></div><div class="stat"><span class="muted">Equipamentos cadastrados</span><strong id="count-equipment">—</strong></div></div>
+<nav aria-label="Seções"><button id="tab-clients" aria-selected="true">Clientes</button><button id="tab-equipment" aria-selected="false">Equipamentos</button></nav>
+<section id="clients-section" class="grid" aria-label="Clientes">
+<div class="card"><h2 id="client-title">Novo cliente</h2><form id="client-form"><input type="hidden" id="client-id"><label for="client-name">Nome *</label><input id="client-name" required maxlength="120" autocomplete="name"><label for="client-email">E-mail *</label><input id="client-email" type="email" required maxlength="254" autocomplete="email"><label for="client-phone">Telefone *</label><input id="client-phone" type="tel" required maxlength="30" autocomplete="tel"><div class="actions"><button type="submit">Salvar cliente</button><button type="button" id="cancel-client" class="secondary">Limpar</button></div><p class="hint">O e-mail deve ser único. Clientes com equipamentos vinculados não podem ser excluídos.</p></form></div>
+<div class="card"><h2>Clientes</h2><div class="toolbar"><input id="client-search" aria-label="Pesquisar clientes" placeholder="Pesquisar nome, e-mail ou telefone"></div><div class="scroll"><table><thead><tr><th>ID / Nome</th><th>Contato</th><th>Ações</th></tr></thead><tbody id="client-rows"></tbody></table></div></div>
+</section>
+<section id="equipment-section" class="grid" aria-label="Equipamentos" hidden>
+<div class="card"><h2 id="equipment-title">Novo equipamento</h2><form id="equipment-form"><input type="hidden" id="equipment-id"><label for="equipment-client">Cliente proprietário *</label><select id="equipment-client" required><option value="">Selecione um cliente</option></select><label for="equipment-type">Tipo *</label><input id="equipment-type" required maxlength="60" placeholder="Ex.: Notebook"><label for="equipment-brand">Marca *</label><input id="equipment-brand" required maxlength="80"><label for="equipment-model">Modelo *</label><input id="equipment-model" required maxlength="120"><label for="equipment-serial">Número de série</label><input id="equipment-serial" maxlength="120"><div class="actions"><button type="submit">Salvar equipamento</button><button type="button" id="cancel-equipment" class="secondary">Limpar</button></div><p class="hint">Cadastre primeiro o cliente. Um equipamento pertence a um único cliente.</p></form></div>
+<div class="card"><h2>Equipamentos</h2><div class="toolbar"><input id="equipment-search" aria-label="Pesquisar equipamentos" placeholder="Pesquisar tipo, marca, modelo ou série"><select id="client-filter" aria-label="Filtrar por cliente"><option value="">Todos os clientes</option></select></div><div class="scroll"><table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Ações</th></tr></thead><tbody id="equipment-rows"></tbody></table></div></div>
+</section>
+<footer>API acadêmica local · Sem autenticação · Use apenas dados de demonstração.<br>Este incremento não inclui ordens de serviço, consertos, estoque ou pagamentos.</footer>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const state={clients:[],equipment:[],busy:false};
+function notify(message,error=false){$('notice').textContent=message;$('notice').className=error?'error':'success';$('notice').hidden=false;}
+function setBusy(value){state.busy=value;document.querySelectorAll('button').forEach(b=>b.disabled=value);}
+async function api(path,method='GET',body){
+ const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),15000);
+ try{
+  const options={method,signal:controller.signal,headers:{Accept:'application/json'}};
+  if(body!==undefined){options.headers['Content-Type']='application/json';options.body=JSON.stringify(body);}
+  const response=await fetch('/api'+path,options);
+  const text=await response.text();let data=null;
+  if(text){try{data=JSON.parse(text);}catch{if(response.ok)throw new Error('A API retornou uma resposta inesperada. Confira se o backend correto está rodando.');}}
+  if(!response.ok)throw new Error((data&&(data.mensagem||data.detail||data.message))||'A API retornou HTTP '+response.status+'.');
+  return data;
+ }catch(error){if(error.name==='AbortError')throw new Error('A API demorou para responder. Confira o terminal do servidor.');if(error instanceof TypeError)throw new Error('Não foi possível acessar a API. Confira se o servidor está rodando e abra esta página por http://localhost:8000/.');throw error;}
+ finally{clearTimeout(timeout);}
+}
+function switchTab(tab){const clients=tab==='clients';$('clients-section').hidden=!clients;$('equipment-section').hidden=clients;$('tab-clients').setAttribute('aria-selected',String(clients));$('tab-equipment').setAttribute('aria-selected',String(!clients));}
+function node(tag,text,className){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(className)n.className=className;return n;}
+function action(text,fn,kind='secondary'){const b=node('button',text,kind+' small');b.type='button';b.disabled=state.busy;b.addEventListener('click',fn);return b;}
+function empty(tbody,message,columns){const tr=node('tr');const td=node('td',message,'empty');td.colSpan=columns;tr.append(td);tbody.append(tr);}
+function fillSelect(id,first){const s=$(id),old=s.value;s.replaceChildren();const option=node('option',first);option.value='';s.append(option);for(const c of state.clients){const o=node('option',c.nome+' (#'+c.id+')');o.value=String(c.id);s.append(o);}if(state.clients.some(c=>String(c.id)===old))s.value=old;}
+function render(){
+ $('count-clients').textContent=state.clients.length;$('count-equipment').textContent=state.equipment.length;
+ fillSelect('equipment-client','Selecione um cliente');fillSelect('client-filter','Todos os clientes');renderClients();renderEquipment();
+}
+function renderClients(){
+ const rows=$('client-rows');rows.replaceChildren();const q=$('client-search').value.toLocaleLowerCase('pt-BR').trim();
+ const list=state.clients.filter(c=>[c.id,c.nome,c.email,c.telefone].join(' ').toLocaleLowerCase('pt-BR').includes(q));
+ if(!list.length){empty(rows,state.clients.length?'Nenhum cliente corresponde à pesquisa.':'Nenhum cliente cadastrado.',3);return;}
+ for(const c of list){const tr=node('tr'),name=node('td');name.append(node('strong',c.nome),node('div','#'+c.id,'muted'));const contact=node('td');contact.append(node('div',c.email),node('div',c.telefone,'muted'));const actions=node('td'),wrap=node('div',undefined,'row-actions');wrap.append(action('Editar',()=>editClient(c)),action('Equipamentos',()=>{switchTab('equipment');$('client-filter').value=String(c.id);$('equipment-client').value=String(c.id);$('equipment-search').value='';renderEquipment();}),action('Excluir',()=>deleteClient(c),'danger'));actions.append(wrap);tr.append(name,contact,actions);rows.append(tr);}
+}
+function renderEquipment(){
+ const rows=$('equipment-rows');rows.replaceChildren();const q=$('equipment-search').value.toLocaleLowerCase('pt-BR').trim(),filter=$('client-filter').value;
+ const list=state.equipment.filter(e=>(!filter||String(e.cliente?.id)===filter)&&[e.id,e.tipo,e.marca,e.modelo,e.numeroSerie].join(' ').toLocaleLowerCase('pt-BR').includes(q));
+ if(!list.length){empty(rows,state.equipment.length?'Nenhum equipamento corresponde aos filtros.':'Nenhum equipamento cadastrado.',3);return;}
+ for(const e of list){const tr=node('tr'),info=node('td');info.append(node('strong',e.marca+' '+e.modelo),node('div','#'+e.id+' · '+e.tipo,'muted'),node('div','Série: '+(e.numeroSerie||'Não informada'),'muted'),budgetNode(e));const owner=node('td',e.cliente?.nome||'Cliente #'+e.cliente?.id);const actions=node('td'),wrap=node('div',undefined,'row-actions');wrap.append(action('Editar',()=>editEquipment(e)),action('Orçamento',()=>sendBudget(e)),action('Excluir',()=>deleteEquipment(e),'danger'));actions.append(wrap);tr.append(info,owner,actions);rows.append(tr);}
+}
+function budgetNode(e){
+ const d=node('div',undefined,'muted');d.append('Orçamento: ');
+ if(e.valorOrcamento==null){d.append('não enviado');return d;}
+ const st=e.statusOrcamento||'PENDENTE';
+ const label={PENDENTE:'Aguardando cliente',ACEITO:'Aceito',REJEITADO:'Rejeitado'}[st]||st;
+ d.append(Number(e.valorOrcamento).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})+' ',node('span',label,'orc status-'+st));
+ return d;
+}
+function sendBudget(e){const v=prompt('Valor do orçamento para "'+e.marca+' '+e.modelo+'" (R$):');if(v===null)return;const n=Number(v.replace(',','.'));if(!(n>0)){notify('Informe um valor maior que zero.',true);return;}mutation('/orcamentos/equipamentos/'+e.id,'PUT',{valor:n},'Orçamento enviado ao cliente.');}
+async function load(){const [clients,equipment]=await Promise.all([api('/clientes'),api('/equipamentos')]);if(!Array.isArray(clients??[])||!Array.isArray(equipment??[]))throw new Error('Formato de dados inesperado na API.');state.clients=clients??[];state.equipment=equipment??[];render();$('dot').className='dot ok';$('connection').textContent='API conectada · Dados atualizados';}
+async function refresh(){if(state.busy)return;setBusy(true);try{await load();$('notice').hidden=true;}catch(e){$('dot').className='dot fail';$('connection').textContent='Não foi possível atualizar os dados';notify(e.message,true);}finally{setBusy(false);}}
+function resetClient(){$('client-form').reset();$('client-id').value='';$('client-title').textContent='Novo cliente';}
+function resetEquipment(){$('equipment-form').reset();$('equipment-id').value='';$('equipment-title').textContent='Novo equipamento';}
+function editClient(c){$('client-id').value=c.id;$('client-name').value=c.nome;$('client-email').value=c.email;$('client-phone').value=c.telefone;$('client-title').textContent='Editar cliente #'+c.id;$('client-name').focus();}
+function editEquipment(e){$('equipment-id').value=e.id;$('equipment-client').value=String(e.cliente.id);$('equipment-type').value=e.tipo;$('equipment-brand').value=e.marca;$('equipment-model').value=e.modelo;$('equipment-serial').value=e.numeroSerie||'';$('equipment-title').textContent='Editar equipamento #'+e.id;$('equipment-type').focus();}
+async function mutation(path,method,body,message,reset){if(state.busy)return;setBusy(true);try{await api(path,method,body);if(reset)reset();try{await load();notify(message);}catch(e){notify(message+' Porém, não foi possível atualizar a lista. Clique em Atualizar dados. '+e.message,true);}}catch(e){notify(e.message,true);}finally{setBusy(false);}}
+function deleteClient(c){if(confirm('Excluir o cliente "'+c.nome+'"? Esta ação não pode ser desfeita. Clientes com equipamentos não podem ser excluídos.'))mutation('/clientes/'+c.id,'DELETE',undefined,'Cliente excluído.',()=>{if($('client-id').value===String(c.id))resetClient();});}
+function deleteEquipment(e){if(confirm('Excluir o equipamento "'+e.marca+' '+e.modelo+'"? Esta ação não pode ser desfeita.'))mutation('/equipamentos/'+e.id,'DELETE',undefined,'Equipamento excluído.',()=>{if($('equipment-id').value===String(e.id))resetEquipment();});}
+$('client-form').addEventListener('submit',event=>{event.preventDefault();const id=$('client-id').value;const data={nome:$('client-name').value.trim(),email:$('client-email').value.trim(),telefone:$('client-phone').value.trim()};if(!data.nome||!data.email||!data.telefone){notify('Preencha todos os campos obrigatórios do cliente.',true);return;}mutation('/clientes'+(id?'/'+id:''),id?'PUT':'POST',data,id?'Cliente atualizado.':'Cliente cadastrado.',resetClient);});
+$('equipment-form').addEventListener('submit',event=>{event.preventDefault();const id=$('equipment-id').value,owner=$('equipment-client').value;const data={tipo:$('equipment-type').value.trim(),marca:$('equipment-brand').value.trim(),modelo:$('equipment-model').value.trim(),numeroSerie:$('equipment-serial').value.trim()||null,cliente:{id:Number(owner)}};if(!owner||!data.tipo||!data.marca||!data.modelo){notify('Selecione o cliente e preencha tipo, marca e modelo.',true);return;}mutation('/equipamentos'+(id?'/'+id:''),id?'PUT':'POST',data,id?'Equipamento atualizado.':'Equipamento cadastrado.',resetEquipment);});
+$('tab-clients').addEventListener('click',()=>switchTab('clients'));$('tab-equipment').addEventListener('click',()=>switchTab('equipment'));
+$('client-search').addEventListener('input',renderClients);$('equipment-search').addEventListener('input',renderEquipment);$('client-filter').addEventListener('change',renderEquipment);
+$('cancel-client').addEventListener('click',resetClient);$('cancel-equipment').addEventListener('click',resetEquipment);$('refresh').addEventListener('click',refresh);
+if(location.protocol==='file:'){notify('Não abra este arquivo com duplo clique. Coloque index.html em src/main/resources/static, inicie o backend e acesse http://localhost:8000/.',true);$('connection').textContent='Abra a interface pelo servidor';}else{refresh();}
+</script>
+</body></html>
