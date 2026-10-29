@@ -1,1 +1,48 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Consultar ordem de serviço | Decode Tech</title><link rel="stylesheet" href="style.css"></head><body><header class="site-header"><a class="brand" href="index.html" aria-label="Assistência técnica - início"><span class="brand-mark">DT</span><span><span class="brand-name">Decode Tech</span><br><span class="brand-sub">Assistência técnica</span></span></a><nav class="nav" aria-label="Navegação principal"><a href="index.html">Início</a><a href="consulta.html">Consultar OS</a><a href="cliente.html">Área do cliente</a></nav></header><main class="container main"><section class="panel" aria-labelledby="t-consulta"><div class="panel-head"><h1 id="t-consulta">Consultar minha OS</h1></div><form class="panel-body" id="consulta-form"><p class="muted">O número da OS está no comprovante de entrada do aparelho.</p><div class="field-group"><label class="lbl" for="num-os">Número da OS</label><input class="field" id="num-os" name="os" placeholder="Ex.: OS-2026-0001" required></div><button class="btn btn-pri" type="submit">Consultar</button><p class="form-note">Prefere ver todos os seus aparelhos? <a class="text-link" href="cliente.html">Entrar com o seu ID</a></p><div id="consulta-result" class="result" aria-live="polite"></div></form></section></main><footer class="site-footer"><div class="footer-inner"><div><h2>Decode Tech</h2><p>Assistência técnica</p><p>Atendimento de segunda a sábado, das 9h às 18h</p></div><div><h2>Atendimento</h2><p>Rua Beco da Coxinha, 6769 - Ponta Grossa, PR</p><p>WhatsApp: +55 42 4002-8922</p><p>SAC: disponível pelo nosso atendimento</p></div></div></footer><script>document.getElementById('consulta-form').addEventListener('submit',function(e){e.preventDefault();const os=document.getElementById('num-os').value.trim();const box=document.getElementById('consulta-result');if(!os)return;box.innerHTML='<div class="notice">Consulta demonstrativa</div><article class="device-card"><div class="device-head"><h2></h2><span class="device-name">iPhone 13 Pro Max</span></div><div class="device-body"><div class="device-info"><strong>Andamento</strong><span class="chip blue">Em aprovação</span><p>Orçamento disponível. Acesse a área do cliente para aprovar ou recusar.</p></div><div class="device-info"><strong>Orçamento</strong><span class="price">R$ 1.000,00</span></div><div class="device-actions"><a class="btn btn-pri" href="cliente.html">Ir para área do cliente</a></div></div></article>';box.querySelector('.device-head h2').textContent=os;});</script></body></html>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Consultar ordem de serviço | Decode Tech</title><link rel="stylesheet" href="style.css"></head><body><header class="site-header"><a class="brand" href="index.html" aria-label="Assistência técnica - início"><span class="brand-mark">DT</span><span><span class="brand-name">Decode Tech</span><br><span class="brand-sub">Assistência técnica</span></span></a><nav class="nav" aria-label="Navegação principal"><a href="index.html">Início</a><a href="consulta.html">Consultar OS</a><a href="cliente.html">Área do cliente</a></nav></header><main class="container main"><section class="panel" aria-labelledby="t-consulta"><div class="panel-head"><h1 id="t-consulta">Consultar minha OS</h1></div><form class="panel-body" id="consulta-form"><p class="muted">O número da OS está no comprovante de entrada do aparelho.</p><div class="field-group"><label class="lbl" for="num-os">Número da OS</label><input class="field" id="num-os" name="os" placeholder="Ex.: OS-2026-0001" required></div><button class="btn btn-pri" type="submit" id="btn-consultar">Consultar</button><p class="form-note">Prefere ver todos os seus aparelhos? <a class="text-link" href="cliente.html">Entrar com o seu ID</a></p><div id="consulta-result" class="result" aria-live="polite"></div></form></section></main><footer class="site-footer"><div class="footer-inner"><div><h2>Decode Tech</h2><p>Assistência técnica</p><p>Atendimento de segunda a sábado, das 9h às 18h</p></div><div><h2>Atendimento</h2><p>Rua Beco da Coxinha, 6769 - Ponta Grossa, PR</p><p>WhatsApp: +55 42 4002-8922</p><p>SAC: disponível pelo nosso atendimento</p></div></div></footer>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
+const dinheiro=v=>Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+
+function mostrar(os){
+  const box=$('consulta-result');box.replaceChildren();
+  const card=el('article',undefined,'device-card');
+  const head=el('div',undefined,'device-head');head.append(el('h2',os.numero),el('span',os.equipamento,'device-name'));
+  const body=el('div',undefined,'device-body');
+
+  const info=el('div',undefined,'device-info');
+  info.append(el('strong','Andamento'),el('span',os.status||'Em andamento','chip blue'));
+  if(os.defeitoRelatado)info.append(el('p','Defeito relatado: '+os.defeitoRelatado));
+  if(os.dataEntrada)info.append(el('p','Entrada em '+new Date(os.dataEntrada).toLocaleDateString('pt-BR')));
+
+  const preco=el('div',undefined,'device-info');
+  preco.append(el('strong','Orçamento'),el('span',os.valorOrcamento==null?'Ainda não enviado':dinheiro(os.valorOrcamento),'price'));
+  if(os.servicos&&os.servicos.length){
+    preco.append(el('strong','Serviços'));
+    for(const s of os.servicos)preco.append(el('p',s.descricao+(s.valor==null?'':' — '+dinheiro(s.valor))));
+  }
+
+  const acoes=el('div',undefined,'device-actions');
+  const link=el('a','Ir para área do cliente','btn btn-pri');link.href='cliente.html';acoes.append(link);
+
+  body.append(info,preco,acoes);card.append(head,body);box.append(card);
+}
+
+$('consulta-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const numero=$('num-os').value.trim();if(!numero)return;
+  const box=$('consulta-result');box.replaceChildren();
+  $('btn-consultar').disabled=true;
+  try{
+    let resp;
+    try{resp=await fetch('/api/os/consulta/'+encodeURIComponent(numero),{headers:{Accept:'application/json'}});}
+    catch{throw new Error('Não foi possível falar com o servidor. Confira se ele está rodando.');}
+    const texto=await resp.text();let dados=null;
+    if(texto){try{dados=JSON.parse(texto);}catch{}}
+    if(!resp.ok)throw new Error(resp.status===404?'Ordem de serviço não encontrada. Confira o número no comprovante.':((dados&&dados.mensagem)||'Erro '+resp.status+' ao consultar.'));
+    mostrar(dados);
+  }catch(err){box.append(el('div',err.message,'notice'));}
+  finally{$('btn-consultar').disabled=false;}
+});
+</script></body></html>
